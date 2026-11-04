@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>San Juan Conecta | Directorio Local</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="header">
+    <h1>San Juan <span>Conecta</span></h1>
+    <p>Descubrí locales, bares, ropa y eventos en San Juan</p>
+    <button class="header-admin-button" id="adminToggle" type="button" aria-expanded="false" aria-controls="adminPanel">
+      Panel de gestión
+    </button>
+  </header>
+
+  <main class="container">
+    <p class="app-status" id="appStatus" role="status" aria-live="polite"></p>
+
+    <section class="admin-panel hidden" id="adminPanel" aria-label="Panel de gestión">
+      <div class="admin-panel-heading">
+        <div>
+          <p class="eyebrow">Acceso privado</p>
+          <h2>Gestión del directorio</h2>
+        </div>
+        <button class="btn-close-panel" id="closeAdminPanel" type="button" aria-label="Cerrar panel">×</button>
+      </div>
+
+      <p class="admin-message" id="adminMessage" role="status" aria-live="polite"></p>
+
+      <form class="admin-login-form" id="loginForm">
+        <label>
+          Correo electrónico
+          <input type="email" name="email" autocomplete="username" required>
+        </label>
+        <label>
+          Contraseña
+          <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button class="admin-primary-button" type="submit">Ingresar</button>
+      </form>
+
+      <section class="admin-session hidden" id="adminSession">
+        <div class="admin-session-heading">
+          <p id="sessionIdentity"></p>
+          <button class="admin-secondary-button" id="logoutButton" type="button">Cerrar sesión</button>
+        </div>
+
+        <section class="admin-editor hidden" id="adminEditor">
+          <h3 id="editorTitle">Agregar un sitio</h3>
+          <form id="placeForm">
+            <input type="hidden" name="id">
+            <label>
+              Nombre del sitio
+              <input type="text" name="name" maxlength="120" required>
+            </label>
+            <label>
+              Categoría
+              <select name="category" required>
+                <option value="gastronomia">Gastronomía</option>
+                <option value="indumentaria">Indumentaria</option>
+                <option value="nocturnidad">Nocturnidad</option>
+                <option value="deportes">Deportes</option>
+              </select>
+            </label>
+            <label>
+              Departamento
+              <input type="text" name="department" maxlength="100" required>
+            </label>
+            <label>
+              Descripción
+              <textarea name="description" rows="3" maxlength="500" required></textarea>
+            </label>
+            <label>
+              Instagram (opcional)
+              <input type="url" name="instagram_url" placeholder="https://instagram.com/..." inputmode="url">
+            </label>
+            <label>
+              Sitio web o menú (opcional)
+              <input type="url" name="website_url" placeholder="https://..." inputmode="url">
+            </label>
+            <label>
+              Etiquetas (separadas por coma)
+              <input type="text" name="tags" placeholder="lomos, comida rápida, restaurante">
+            </label>
+            <label id="ownerSelectLabel" class="hidden">
+              Cuenta dueña de la ficha
+              <select name="owner_id">
+                <option value="">Sin asignar</option>
+              </select>
+            </label>
+            <div class="admin-form-actions">
+              <button class="admin-primary-button" type="submit">Guardar sitio</button>
+              <button class="admin-secondary-button hidden" id="cancelEditButton" type="button">Cancelar edición</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="managed-sites">
+          <h3 id="managedSitesTitle">Mis estadísticas</h3>
+          <div class="managed-sites-list" id="managedSites"></div>
+        </section>
+      </section>
+    </section>
+
+    <!-- Módulo de Búsqueda y Filtros -->
+    <section class="controls-section">
+      <input type="text" id="searchInput" placeholder="Buscar por nombre, zona o etiqueta (ej. lomería, Rivadavia)...">
+      
+      <div class="category-buttons" id="categoryButtons">
+        <button class="btn-filter active" data-category="todos">Todos</button>
+        <button class="btn-filter" data-category="gastronomia">Gastronomía</button>
+        <button class="btn-filter" data-category="indumentaria">Indumentaria</button>
+        <button class="btn-filter" data-category="nocturnidad">Nocturnidad</button>
+        <button class="btn-filter" data-category="deportes">Deportes</button>
+      </div>
+    </section>
+
+    <!-- Grilla de Tarjetas -->
+    <section class="grid-container" id="placesGrid">
+      <!-- Se puebla dinámicamente desde JavaScript -->
+    </section>
+
+    <!-- Mensaje cuando no hay resultados -->
+    <div id="noResults" class="no-results hidden">
+      No se encontraron resultados para tu búsqueda.
+    </div>
+
+  </main>
+
+  <script src="supabase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
