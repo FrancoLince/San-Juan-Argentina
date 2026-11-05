@@ -8,7 +8,7 @@ create table if not exists public.profiles (
 create table if not exists public.places (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(btrim(name)) between 1 and 120),
-  category text not null check (category in ('gastronomia', 'indumentaria', 'nocturnidad', 'deportes')),
+  category text not null check (char_length(btrim(category)) between 1 and 80),
   department text not null check (char_length(btrim(department)) between 1 and 100),
   description text not null check (char_length(btrim(description)) between 1 and 500),
   image_url text,

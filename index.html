@@ -81,13 +81,12 @@
               <input type="text" name="name" maxlength="120" required>
             </label>
             <label>
-              Categoría
-              <select name="category" required>
-                <option value="gastronomia">Gastronomía</option>
-                <option value="indumentaria">Indumentaria</option>
-                <option value="nocturnidad">Nocturnidad</option>
-                <option value="deportes">Deportes</option>
-              </select>
+              Rubro del negocio
+              <select id="placeCategorySelect" name="category" required></select>
+            </label>
+            <label class="hidden" id="customCategoryLabel">
+              Especificá el rubro
+              <input id="customCategoryInput" type="text" maxlength="80" placeholder="Ej. reparación de bicicletas">
             </label>
             <label>
               Departamento
@@ -144,15 +143,13 @@
     <section class="controls-section">
       <input type="text" id="searchInput" placeholder="Buscar por nombre, zona o etiqueta (ej. lomería, Rivadavia)...">
 
-      <div class="category-buttons" id="categoryButtons">
-        <button class="btn-filter active" data-category="todos">Todos</button>
-        <button class="btn-filter" data-category="gastronomia">Gastronomía</button>
-        <button class="btn-filter" data-category="indumentaria">Indumentaria</button>
-        <button class="btn-filter" data-category="nocturnidad">Nocturnidad</button>
-        <button class="btn-filter" data-category="deportes">Deportes</button>
-      </div>
-
       <div class="additional-filters">
+        <label>
+          Rubro
+          <select id="categoryFilter">
+            <option value="">Todos los rubros</option>
+          </select>
+        </label>
         <label>
           Departamento o zona
           <select id="departmentFilter">
@@ -160,7 +157,7 @@
           </select>
         </label>
         <label>
-          Tipo de lugar o servicio
+          Etiquetas
           <select id="tagFilter">
             <option value="">Todas las etiquetas</option>
           </select>

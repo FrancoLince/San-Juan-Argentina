@@ -47,7 +47,11 @@ Render y Vercel necesitan acceder al proyecto desde un repositorio GitHub. Como 
 
 Los sitios existentes en el prototipo permanecen como datos de muestra mientras Supabase no esté configurado. La base conectada comienza vacía; cargá las fichas desde el panel admin.
 
-En el directorio público se puede combinar la búsqueda con filtros de categoría, departamento/zona y etiquetas. Los filtros de ubicación y etiquetas se generan automáticamente a partir de las fichas cargadas.
+En el directorio público se puede combinar la búsqueda con filtros de rubro, departamento/zona y etiquetas. Los filtros de ubicación y etiquetas se generan automáticamente a partir de las fichas cargadas. El formulario incluye rubros comunes de comercio, servicios, producción y emprendimientos; también permite escribir cualquier rubro nuevo, que luego aparece automáticamente en el filtro.
+
+## Categorías personalizadas
+
+Para una base ya configurada, ejecutá una vez `supabase-categories-setup.sql` desde el SQL Editor de Supabase antes de publicar esta versión. Esto permite rubros personalizados de hasta 80 caracteres, además de los rubros sugeridos en el formulario. Si todavía no aplicaste la configuración de fotos, ejecutá también `supabase-image-setup.sql`.
 
 ## Fotos en las fichas
 

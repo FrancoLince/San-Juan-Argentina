@@ -1,16 +1,57 @@
-const categorias = {
-  gastronomia: "Gastronomía",
-  indumentaria: "Indumentaria",
-  nocturnidad: "Nocturnidad",
-  deportes: "Deportes"
-};
-
-const iconosCategoria = {
-  gastronomia: "🍽",
-  indumentaria: "✦",
-  nocturnidad: "♫",
-  deportes: "⚽"
-};
+const categorias = [
+  { value: "gastronomia", label: "Gastronomía", icon: "🍽" },
+  { value: "panaderias_pastelerias", label: "Panaderías y pastelerías", icon: "🥐" },
+  { value: "carnicerias_fiambrerias", label: "Carnicerías y fiambrerías", icon: "▣" },
+  { value: "vinotecas_bebidas", label: "Vinotecas y bebidas", icon: "♧" },
+  { value: "indumentaria", label: "Indumentaria", icon: "✦" },
+  { value: "calzado_accesorios", label: "Calzado y accesorios", icon: "✦" },
+  { value: "hogar_muebles_decoracion", label: "Hogar, muebles y decoración", icon: "⌂" },
+  { value: "electrodomesticos", label: "Electrodomésticos", icon: "▤" },
+  { value: "librerias_regalerias", label: "Librerías y regalerías", icon: "✎" },
+  { value: "jugueterias", label: "Jugueterías", icon: "✦" },
+  { value: "nocturnidad", label: "Nocturnidad", icon: "♫" },
+  { value: "deportes", label: "Deportes", icon: "⚽" },
+  { value: "almacenes_supermercados", label: "Almacenes y supermercados", icon: "🛒" },
+  { value: "mayoristas_distribuidores", label: "Mayoristas y distribuidores", icon: "▦" },
+  { value: "salud", label: "Salud", icon: "✚" },
+  { value: "farmacias_perfumerias", label: "Farmacias y perfumerías", icon: "✚" },
+  { value: "belleza_estetica", label: "Belleza y estética", icon: "✿" },
+  { value: "servicios_profesionales", label: "Servicios profesionales", icon: "▣" },
+  { value: "construccion_ferreterias", label: "Construcción y ferreterías", icon: "⌂" },
+  { value: "inmobiliarias", label: "Inmobiliarias", icon: "⌂" },
+  { value: "automotor", label: "Automotor: venta y alquiler", icon: "🚗" },
+  { value: "talleres_repuestos", label: "Talleres y repuestos", icon: "⚙" },
+  { value: "transporte_logistica", label: "Transporte y logística", icon: "➜" },
+  { value: "delivery_mensajeria", label: "Delivery y mensajería", icon: "➜" },
+  { value: "tecnologia", label: "Tecnología", icon: "▤" },
+  { value: "marketing_diseno", label: "Marketing, diseño y comunicación", icon: "✎" },
+  { value: "imprenta_grafica", label: "Imprentas y gráfica", icon: "▤" },
+  { value: "finanzas_seguros", label: "Finanzas y seguros", icon: "$" },
+  { value: "legales_contables", label: "Servicios legales y contables", icon: "▣" },
+  { value: "agricultura_ganaderia", label: "Agricultura y ganadería", icon: "♧" },
+  { value: "agro_veterinaria", label: "Agro y veterinaria", icon: "♧" },
+  { value: "industria_mineria", label: "Industria y minería", icon: "⚒" },
+  { value: "energia", label: "Energía y energías renovables", icon: "✧" },
+  { value: "bodegas_olivicolas", label: "Bodegas y olivícolas", icon: "♧" },
+  { value: "turismo_alojamiento", label: "Turismo y alojamiento", icon: "⌖" },
+  { value: "educacion", label: "Educación y capacitación", icon: "✎" },
+  { value: "cultura_entretenimiento", label: "Cultura y entretenimiento", icon: "♫" },
+  { value: "eventos", label: "Eventos y celebraciones", icon: "✦" },
+  { value: "servicios_tecnicos", label: "Servicios técnicos y reparaciones", icon: "⚙" },
+  { value: "limpieza_mantenimiento", label: "Limpieza y mantenimiento", icon: "✧" },
+  { value: "lavanderias", label: "Lavanderías", icon: "✧" },
+  { value: "cuidado_infantil_adultos", label: "Cuidado infantil y de adultos", icon: "✚" },
+  { value: "mascotas", label: "Mascotas", icon: "🐾" },
+  { value: "organizaciones_emprendimientos", label: "Emprendimientos y organizaciones", icon: "✧" },
+  { value: "otros", label: "Otros", icon: "✦" }
+];
+const categoriaPorValor = new Map(categorias.map((category) => [category.value, category]));
+const categoriasAnteriores = [
+  { value: "belleza", label: "Belleza", icon: "✿" },
+  { value: "hogar_construccion", label: "Hogar y construcción", icon: "⌂" }
+];
+categoriasAnteriores.forEach((category) => categoriaPorValor.set(category.value, category));
+const categoriaPersonalizada = "__custom__";
 
 const localesDemo = [
   {
@@ -67,7 +108,10 @@ const localesDemo = [
 
 const placesGrid = document.getElementById("placesGrid");
 const searchInput = document.getElementById("searchInput");
-const categoryButtons = document.getElementById("categoryButtons");
+const categoryFilter = document.getElementById("categoryFilter");
+const placeCategorySelect = document.getElementById("placeCategorySelect");
+const customCategoryLabel = document.getElementById("customCategoryLabel");
+const customCategoryInput = document.getElementById("customCategoryInput");
 const departmentFilter = document.getElementById("departmentFilter");
 const tagFilter = document.getElementById("tagFilter");
 const noResults = document.getElementById("noResults");
@@ -115,6 +159,7 @@ document.addEventListener("DOMContentLoaded", inicializar);
 
 async function inicializar() {
   configurarEventos();
+  configurarCategorias();
   renderizarTarjetas(localesDemo);
   actualizarOpcionesFiltros(localesDemo);
 
@@ -153,23 +198,37 @@ async function inicializar() {
   }
 }
 
+function configurarCategorias() {
+  placeCategorySelect.replaceChildren();
+
+  categorias.forEach(({ value, label }) => {
+    placeCategorySelect.add(new Option(label, value));
+  });
+  categoriasAnteriores.forEach(({ value, label }) => {
+    placeCategorySelect.add(new Option(`${label} (ficha existente)`, value));
+  });
+  placeCategorySelect.add(new Option("Otro rubro (especificar)", categoriaPersonalizada));
+  actualizarOpcionesCategorias();
+}
+
 function configurarEventos() {
   searchInput.addEventListener("input", (event) => {
     busquedaActual = event.target.value.toLowerCase().trim();
     aplicarFiltros();
   });
 
-  categoryButtons.addEventListener("click", (event) => {
-    const button = event.target.closest(".btn-filter");
-    if (!button) {
-      return;
-    }
-
-    categoryButtons.querySelectorAll(".btn-filter").forEach((filterButton) => {
-      filterButton.classList.toggle("active", filterButton === button);
-    });
-    categoriaActual = button.dataset.category;
+  categoryFilter.addEventListener("change", () => {
+    categoriaActual = categoryFilter.value;
     aplicarFiltros();
+  });
+
+  placeCategorySelect.addEventListener("change", () => {
+    const isCustom = placeCategorySelect.value === categoriaPersonalizada;
+    customCategoryLabel.classList.toggle("hidden", !isCustom);
+    customCategoryInput.required = isCustom;
+    if (!isCustom) {
+      customCategoryInput.value = "";
+    }
   });
 
   departmentFilter.addEventListener("change", aplicarFiltros);
@@ -397,7 +456,7 @@ function renderizarTarjetas(lista) {
         image.classList.add("card-image-placeholder");
         photo.remove();
         const icon = document.createElement("span");
-        icon.textContent = iconosCategoria[local.category] ?? "✦";
+        icon.textContent = categoriaPorValor.get(local.category)?.icon ?? "✦";
         image.append(icon);
       }, { once: true });
       image.append(photo);
@@ -405,7 +464,7 @@ function renderizarTarjetas(lista) {
       image.classList.add("card-image-placeholder");
       image.setAttribute("aria-hidden", "true");
       const icon = document.createElement("span");
-      icon.textContent = iconosCategoria[local.category] ?? "✦";
+      icon.textContent = categoriaPorValor.get(local.category)?.icon ?? "✦";
       image.append(icon);
     }
 
@@ -419,7 +478,7 @@ function renderizarTarjetas(lista) {
 
     const badge = document.createElement("span");
     badge.className = "card-badge";
-    badge.textContent = categorias[local.category] ?? local.category;
+    badge.textContent = categoriaPorValor.get(local.category)?.label ?? local.category;
     heading.append(title, badge);
 
     const location = document.createElement("div");
@@ -484,7 +543,7 @@ function aplicarFiltros() {
   const departamentoSeleccionado = departmentFilter.value;
   const etiquetaSeleccionada = tagFilter.value;
   const resultados = locales.filter((local) => {
-    const coincideCategoria = categoriaActual === "todos" || local.category === categoriaActual;
+    const coincideCategoria = !categoriaActual || local.category === categoriaActual;
     const coincideDepartamento = !departamentoSeleccionado || local.department === departamentoSeleccionado;
     const coincideEtiqueta = !etiquetaSeleccionada || local.tags.some(
       (tag) => tag.toLocaleLowerCase("es-AR") === etiquetaSeleccionada
@@ -492,6 +551,7 @@ function aplicarFiltros() {
     const textoBuscado = [
       local.name,
       local.department,
+      local.category,
       local.description,
       ...local.tags
     ].join(" ").toLowerCase();
@@ -544,6 +604,7 @@ function obtenerRutaImagen(imageUrl) {
 }
 
 function actualizarOpcionesFiltros(sites) {
+  actualizarOpcionesCategorias(sites);
   const departamentoActual = departmentFilter.value;
   const etiquetaActual = tagFilter.value;
   const departamentos = [...new Set(sites.map((site) => site.department).filter(Boolean))]
@@ -559,6 +620,25 @@ function actualizarOpcionesFiltros(sites) {
   });
   if (departamentos.includes(departamentoActual)) {
     departmentFilter.value = departamentoActual;
+  }
+
+  function actualizarOpcionesCategorias(sites = locales) {
+    const selectedCategory = categoryFilter.value;
+    const availableCategories = new Map(categorias.map(({ value, label }) => [value, label]));
+    sites.forEach((site) => {
+      if (site.category && !availableCategories.has(site.category)) {
+        availableCategories.set(site.category, categoriaPorValor.get(site.category)?.label ?? site.category);
+      }
+    });
+
+    categoryFilter.replaceChildren(new Option("Todos los rubros", ""));
+    [...availableCategories.entries()]
+      .sort((a, b) => a[1].localeCompare(b[1], "es-AR"))
+      .forEach(([value, label]) => categoryFilter.add(new Option(label, value)));
+    if (availableCategories.has(selectedCategory)) {
+      categoryFilter.value = selectedCategory;
+    }
+    categoriaActual = categoryFilter.value;
   }
 
   tagFilter.replaceChildren(new Option("Todas las etiquetas", ""));
@@ -647,7 +727,7 @@ async function cargarPanelSitios() {
     const title = document.createElement("h4");
     title.textContent = place.name;
     const category = document.createElement("span");
-    category.textContent = categorias[place.category] ?? place.category;
+    category.textContent = categoriaPorValor.get(place.category)?.label ?? place.category;
     heading.append(title, category);
 
     const metrics = document.createElement("dl");
@@ -718,7 +798,9 @@ async function guardarSitio(event) {
   const payload = {
     id: placeId,
     name: formData.get("name").trim(),
-    category: formData.get("category"),
+    category: formData.get("category") === categoriaPersonalizada
+      ? customCategoryInput.value.trim()
+      : formData.get("category"),
     department: formData.get("department").trim(),
     description: formData.get("description").trim(),
     instagram_url: instagramUrl || null,
@@ -727,6 +809,10 @@ async function guardarSitio(event) {
     tags: formData.get("tags").split(",").map((tag) => tag.trim()).filter(Boolean),
     owner_id: formData.get("owner_id") || null
   };
+  if (!payload.category || payload.category.length > 80) {
+    adminMessage.textContent = "Elegí un rubro o escribí uno de hasta 80 caracteres.";
+    return;
+  }
   let uploadedImagePath = "";
   let databaseSaved = false;
   const submitButton = placeForm.querySelector('button[type="submit"]');
@@ -810,7 +896,16 @@ function iniciarEdicion(place) {
   }
   placeForm.elements.id.value = place.id;
   placeForm.elements.name.value = place.name;
-  placeForm.elements.category.value = place.category;
+  if (categoriaPorValor.has(place.category)) {
+    placeForm.elements.category.value = place.category;
+    customCategoryInput.value = "";
+  } else {
+    placeForm.elements.category.value = categoriaPersonalizada;
+    customCategoryInput.value = place.category;
+  }
+  const isCustomCategory = placeForm.elements.category.value === categoriaPersonalizada;
+  customCategoryLabel.classList.toggle("hidden", !isCustomCategory);
+  customCategoryInput.required = isCustomCategory;
   placeForm.elements.department.value = place.department;
   placeForm.elements.description.value = place.description;
   placeForm.elements.instagram_url.value = place.instagram_url ?? "";
@@ -839,6 +934,8 @@ function limpiarFormulario() {
   }
   placeForm.reset();
   placeForm.elements.id.value = "";
+  customCategoryLabel.classList.add("hidden");
+  customCategoryInput.required = false;
   currentPlaceImageUrl = "";
   removePlaceImageLabel.classList.add("hidden");
   placeImageEditor.classList.add("hidden");
