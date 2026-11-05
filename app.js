@@ -629,6 +629,25 @@ function obtenerRutaImagen(imageUrl) {
   }
 }
 
+function actualizarOpcionesCategorias(sites = locales) {
+  const selectedCategory = categoryFilter.value;
+  const availableCategories = new Map(categorias.map(({ value, label }) => [value, label]));
+  sites.forEach((site) => {
+    if (site.category && !availableCategories.has(site.category)) {
+      availableCategories.set(site.category, categoriaPorValor.get(site.category)?.label ?? site.category);
+    }
+  });
+
+  categoryFilter.replaceChildren(new Option("Todos los rubros", ""));
+  [...availableCategories.entries()]
+    .sort((a, b) => a[1].localeCompare(b[1], "es-AR"))
+    .forEach(([value, label]) => categoryFilter.add(new Option(label, value)));
+  if (availableCategories.has(selectedCategory)) {
+    categoryFilter.value = selectedCategory;
+  }
+  categoriaActual = categoryFilter.value;
+}
+
 function actualizarOpcionesFiltros(sites) {
   actualizarOpcionesCategorias(sites);
   const departamentoActual = departmentFilter.value;
@@ -646,25 +665,6 @@ function actualizarOpcionesFiltros(sites) {
   });
   if (departamentos.includes(departamentoActual)) {
     departmentFilter.value = departamentoActual;
-  }
-
-  function actualizarOpcionesCategorias(sites = locales) {
-    const selectedCategory = categoryFilter.value;
-    const availableCategories = new Map(categorias.map(({ value, label }) => [value, label]));
-    sites.forEach((site) => {
-      if (site.category && !availableCategories.has(site.category)) {
-        availableCategories.set(site.category, categoriaPorValor.get(site.category)?.label ?? site.category);
-      }
-    });
-
-    categoryFilter.replaceChildren(new Option("Todos los rubros", ""));
-    [...availableCategories.entries()]
-      .sort((a, b) => a[1].localeCompare(b[1], "es-AR"))
-      .forEach(([value, label]) => categoryFilter.add(new Option(label, value)));
-    if (availableCategories.has(selectedCategory)) {
-      categoryFilter.value = selectedCategory;
-    }
-    categoriaActual = categoryFilter.value;
   }
 
   tagFilter.replaceChildren(new Option("Todas las etiquetas", ""));
