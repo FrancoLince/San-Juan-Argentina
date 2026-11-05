@@ -72,6 +72,7 @@ const adminSession = document.getElementById("adminSession");
 const sessionIdentity = document.getElementById("sessionIdentity");
 const logoutButton = document.getElementById("logoutButton");
 const passwordSetupForm = document.getElementById("passwordSetupForm");
+const ownerInviteForm = document.getElementById("ownerInviteForm");
 const adminEditor = document.getElementById("adminEditor");
 const placeForm = document.getElementById("placeForm");
 const managedSites = document.getElementById("managedSites");
@@ -204,6 +205,40 @@ function configurarEventos() {
   placeForm.addEventListener("submit", guardarSitio);
   cancelEditButton.addEventListener("click", limpiarFormulario);
 
+  ownerInviteForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    adminMessage.textContent = "";
+    const submitButton = ownerInviteForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    const email = new FormData(ownerInviteForm).get("email").trim();
+
+    try {
+      const { error } = await supabaseClient.functions.invoke("invite-owner", {
+        body: { email }
+      });
+      if (error) {
+        let message = error.message;
+        if (error.context instanceof Response) {
+          const responseBody = await error.context.clone().json().catch(() => null);
+          message = responseBody?.error ?? message;
+        }
+        throw new Error(message);
+      }
+
+      ownerInviteForm.reset();
+      try {
+        await cargarCuentasDueñas();
+        adminMessage.textContent = `Invitación enviada a ${email}. Cuando acepte, podrás asignarle fichas.`;
+      } catch (error) {
+        adminMessage.textContent = `La invitación se envió, pero no se pudo actualizar la lista de socios: ${error.message}`;
+      }
+    } catch (error) {
+      adminMessage.textContent = `No se pudo enviar la invitación: ${error.message}`;
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+
   passwordSetupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     adminMessage.textContent = "";
@@ -274,6 +309,7 @@ async function actualizarSesion(session) {
 
     rolActual = profile.role;
     sessionIdentity.textContent = `${profile.email} · ${rolActual === "admin" ? "Administrador" : "Dueño"}`;
+    ownerInviteForm.classList.toggle("hidden", rolActual !== "admin");
     adminEditor.classList.toggle("hidden", rolActual !== "admin");
     ownerSelectLabel.classList.toggle("hidden", rolActual !== "admin");
     managedSitesTitle.textContent = rolActual === "admin" ? "Sitios y clics" : "Mis estadísticas";
