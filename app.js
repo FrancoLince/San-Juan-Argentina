@@ -53,6 +53,45 @@ const categoriasAnteriores = [
 categoriasAnteriores.forEach((category) => categoriaPorValor.set(category.value, category));
 const categoriaPersonalizada = "__custom__";
 
+const filtrosActividad = {
+  comer: {
+    categories: ["gastronomia", "panaderias_pastelerias", "carnicerias_fiambrerias", "vinotecas_bebidas"],
+    keywords: ["restaurante", "restaurant", "gastronomia", "comida", "pizza", "hamburgues", "lomo", "sushi", "panader", "pasteler", "helader", "vinoteca"]
+  },
+  ropa: {
+    categories: ["indumentaria", "calzado_accesorios"],
+    keywords: ["ropa", "indumentaria", "calzado", "zapatilla", "accesorio", "streetwear"]
+  },
+  cafe: {
+    categories: ["panaderias_pastelerias"],
+    keywords: ["cafe", "cafeteria", "merienda", "desayuno", "pasteler", "torta", "helader"]
+  },
+  cine: {
+    categories: [],
+    keywords: ["cine", "cinema", "pelicula", "cartelera", "sala de cine"]
+  },
+  juegos: {
+    categories: [],
+    keywords: ["juego", "videojuego", "arcade", "bowling", "billar", "escape room", "paintball", "karting", "laser tag", "realidad virtual", "ludoteca", "trampolin"]
+  },
+  salidas: {
+    categories: ["nocturnidad", "eventos", "cultura_entretenimiento"],
+    keywords: ["salida", "evento", "fiesta", "boliche", "recital", "teatro", "musica", "tragos", "entretenimiento"]
+  },
+  "aire-libre": {
+    categories: ["deportes", "turismo_alojamiento"],
+    keywords: ["aire libre", "trekking", "senderismo", "ciclismo", "bicicleta", "camping", "aventura", "deporte", "gimnasio", "fitness", "pileta", "natacion"]
+  },
+  compras: {
+    categories: [
+      "indumentaria", "calzado_accesorios", "hogar_muebles_decoracion", "electrodomesticos",
+      "librerias_regalerias", "jugueterias", "almacenes_supermercados", "mayoristas_distribuidores",
+      "farmacias_perfumerias", "belleza_estetica", "automotor", "tecnologia"
+    ],
+    keywords: ["regaleria", "libreria", "jugueteria", "supermercado"]
+  }
+};
+
 const localesDemo = [
   {
     id: "demo-1",
@@ -108,6 +147,7 @@ const localesDemo = [
 
 const placesGrid = document.getElementById("placesGrid");
 const searchInput = document.getElementById("searchInput");
+const activityFilters = document.getElementById("activityFilters");
 const categoryFilter = document.getElementById("categoryFilter");
 const placeCategorySelect = document.getElementById("placeCategorySelect");
 const customCategoryLabel = document.getElementById("customCategoryLabel");
@@ -139,6 +179,7 @@ const cancelEditButton = document.getElementById("cancelEditButton");
 
 let locales = localesDemo;
 let categoriaActual = "todos";
+let actividadActual = "";
 let busquedaActual = "";
 let supabaseClient = null;
 let supabaseReadyPromise = null;
@@ -224,6 +265,21 @@ function configurarCategorias() {
 function configurarEventos() {
   searchInput.addEventListener("input", (event) => {
     busquedaActual = event.target.value.toLowerCase().trim();
+    aplicarFiltros();
+  });
+
+  activityFilters.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-activity-filter]");
+    if (!button) {
+      return;
+    }
+
+    actividadActual = button.dataset.activityFilter;
+    activityFilters.querySelectorAll("[data-activity-filter]").forEach((filterButton) => {
+      const isActive = filterButton === button;
+      filterButton.classList.toggle("active", isActive);
+      filterButton.setAttribute("aria-pressed", String(isActive));
+    });
     aplicarFiltros();
   });
 
@@ -568,6 +624,7 @@ function validarUrl(value) {
 function aplicarFiltros() {
   const departamentoSeleccionado = departmentFilter.value;
   const etiquetaSeleccionada = tagFilter.value;
+  const filtroActividad = filtrosActividad[actividadActual];
   const resultados = locales.filter((local) => {
     const coincideCategoria = !categoriaActual || local.category === categoriaActual;
     const coincideDepartamento = !departamentoSeleccionado || local.department === departamentoSeleccionado;
@@ -581,13 +638,22 @@ function aplicarFiltros() {
       local.description,
       ...local.tags
     ].join(" ").toLowerCase();
+    const textoNormalizado = normalizarTexto(textoBuscado);
+    const coincideActividad = !filtroActividad
+      || filtroActividad.categories.includes(local.category)
+      || filtroActividad.keywords.some((keyword) => textoNormalizado.includes(normalizarTexto(keyword)));
     return coincideCategoria
       && coincideDepartamento
       && coincideEtiqueta
+      && coincideActividad
       && textoBuscado.includes(busquedaActual);
   });
 
   renderizarTarjetas(resultados);
+}
+
+function normalizarTexto(texto) {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
 function actualizarVistaPreviaImagen() {

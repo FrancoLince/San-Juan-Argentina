@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>San Juan Conecta | Directorio Local</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261105-2">
 </head>
 <body>
 
@@ -143,26 +143,41 @@
     <section class="controls-section">
       <input type="text" id="searchInput" placeholder="Buscar por nombre, zona o etiqueta (ej. lomería, Rivadavia)...">
 
-      <div class="additional-filters">
-        <label>
-          Rubro
-          <select id="categoryFilter">
-            <option value="">Todos los rubros</option>
-          </select>
-        </label>
-        <label>
-          Departamento o zona
-          <select id="departmentFilter">
-            <option value="">Todos los departamentos y zonas</option>
-          </select>
-        </label>
-        <label>
-          Etiquetas
-          <select id="tagFilter">
-            <option value="">Todas las etiquetas</option>
-          </select>
-        </label>
+      <div class="activity-filters" id="activityFilters" role="group" aria-label="Explorar por plan o tipo de lugar">
+        <button class="btn-filter active" type="button" data-activity-filter="" aria-pressed="true">Todo</button>
+        <button class="btn-filter" type="button" data-activity-filter="comer" aria-pressed="false">Comer y tomar</button>
+        <button class="btn-filter" type="button" data-activity-filter="ropa" aria-pressed="false">Ropa y calzado</button>
+        <button class="btn-filter" type="button" data-activity-filter="cafe" aria-pressed="false">Cafés y meriendas</button>
+        <button class="btn-filter" type="button" data-activity-filter="cine" aria-pressed="false">Cine</button>
+        <button class="btn-filter" type="button" data-activity-filter="juegos" aria-pressed="false">Juegos y diversión</button>
+        <button class="btn-filter" type="button" data-activity-filter="salidas" aria-pressed="false">Salidas y eventos</button>
+        <button class="btn-filter" type="button" data-activity-filter="aire-libre" aria-pressed="false">Deportes y aire libre</button>
+        <button class="btn-filter" type="button" data-activity-filter="compras" aria-pressed="false">Compras</button>
       </div>
+
+      <details class="advanced-filters">
+        <summary>Más filtros: rubro, zona y etiquetas</summary>
+        <div class="additional-filters">
+          <label>
+            Rubro
+            <select id="categoryFilter">
+              <option value="">Todos los rubros</option>
+            </select>
+          </label>
+          <label>
+            Departamento o zona
+            <select id="departmentFilter">
+              <option value="">Todos los departamentos y zonas</option>
+            </select>
+          </label>
+          <label>
+            Etiquetas
+            <select id="tagFilter">
+              <option value="">Todas las etiquetas</option>
+            </select>
+          </label>
+        </div>
+      </details>
     </section>
 
     <!-- Grilla de Tarjetas -->
@@ -178,6 +193,6 @@
   </main>
 
   <script src="supabase-config.js?v=20261105-1"></script>
-  <script type="module" src="app.js?v=20261105-3"></script>
+  <script type="module" src="app.js?v=20261105-5"></script>
 </body>
 </html>
