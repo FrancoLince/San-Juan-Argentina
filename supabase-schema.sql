@@ -83,7 +83,12 @@ $$;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
-  after insert or update of email on auth.users
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+drop trigger if exists on_auth_user_email_updated on auth.users;
+create trigger on_auth_user_email_updated
+  after update of email on auth.users
   for each row execute function public.handle_new_user();
 
 create or replace function public.track_link_click(p_place_id uuid, p_link_type text)

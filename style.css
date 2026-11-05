@@ -465,6 +465,27 @@ body {
   gap: 1rem;
 }
 
+.password-setup-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  align-items: end;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background-color: #fffdfa;
+}
+
+.password-setup-form h3,
+.password-setup-form p {
+  grid-column: 1 / -1;
+}
+
+.password-setup-form p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
 .admin-session-heading {
   flex-wrap: wrap;
   padding-bottom: 1rem;

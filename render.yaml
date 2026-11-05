@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: san-juan-conecta
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: .

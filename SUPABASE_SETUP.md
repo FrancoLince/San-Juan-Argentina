@@ -15,7 +15,13 @@ La app sigue siendo HTML, CSS y JavaScript separados. Supabase guarda los sitios
    where email = 'tu-correo@ejemplo.com';
    ```
 
-5. Serví la carpeta mediante un servidor web local o de hosting (no abras `index.html` con `file://`) y abrí **Panel de gestión** para iniciar sesión. La cuenta admin puede crear, editar y retirar sitios, y asignar cada ficha a un dueño. Los dueños ven únicamente las métricas de las fichas asignadas.
+5. Desplegá el proyecto en uno o ambos hosts:
+   - **Render:** conectá el repositorio GitHub en Render como **Blueprint**; `render.yaml` configura el sitio estático y publica la raíz del proyecto.
+   - **Vercel:** importá el mismo repositorio GitHub en Vercel. Es un sitio HTML/CSS/JS estático; no necesita comando de build ni directorio de salida personalizado.
+6. En Supabase → Authentication → URL Configuration, configurá `https://san-juan-argentina.onrender.com` como **Site URL** si Render será el dominio principal. En **Redirect URLs**, agregá `https://san-juan-argentina.onrender.com/**`. Si después publicás en Vercel, agregá también `https://TU-PROYECTO.vercel.app/**`; para desarrollo local, `http://localhost:8000/**`.
+7. Invitá o reenviá las invitaciones después de guardar esas URLs. Un enlace anterior que expiró no se recupera: hay que generar uno nuevo. Abrí el enlace nuevo desde el dominio configurado; el panel permitirá definir la contraseña. La cuenta admin puede crear, editar y retirar sitios, y asignar cada ficha a un dueño. Los dueños ven únicamente las métricas de las fichas asignadas.
+
+Render y Vercel necesitan acceder al proyecto desde un repositorio GitHub. Como este workspace aún no está conectado a un repositorio, primero subí los archivos del proyecto a uno y después importá ese repositorio en cada plataforma.
 
 Los sitios existentes en el prototipo permanecen como datos de muestra mientras Supabase no esté configurado. La base conectada comienza vacía; cargá las fichas desde el panel admin.
 

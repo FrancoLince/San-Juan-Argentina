@@ -48,6 +48,20 @@
           <button class="admin-secondary-button" id="logoutButton" type="button">Cerrar sesión</button>
         </div>
 
+        <form class="password-setup-form hidden" id="passwordSetupForm">
+          <h3>Definí tu contraseña</h3>
+          <p>Elegí una contraseña para ingresar al panel de gestión.</p>
+          <label>
+            Nueva contraseña
+            <input type="password" name="password" autocomplete="new-password" minlength="8" required>
+          </label>
+          <label>
+            Repetí la contraseña
+            <input type="password" name="passwordConfirmation" autocomplete="new-password" minlength="8" required>
+          </label>
+          <button class="admin-primary-button" type="submit">Guardar contraseña</button>
+        </form>
+
         <section class="admin-editor hidden" id="adminEditor">
           <h3 id="editorTitle">Agregar un sitio</h3>
           <form id="placeForm">

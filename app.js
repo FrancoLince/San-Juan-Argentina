@@ -71,6 +71,7 @@ const loginForm = document.getElementById("loginForm");
 const adminSession = document.getElementById("adminSession");
 const sessionIdentity = document.getElementById("sessionIdentity");
 const logoutButton = document.getElementById("logoutButton");
+const passwordSetupForm = document.getElementById("passwordSetupForm");
 const adminEditor = document.getElementById("adminEditor");
 const placeForm = document.getElementById("placeForm");
 const managedSites = document.getElementById("managedSites");
@@ -84,12 +85,20 @@ let busquedaActual = "";
 let supabaseClient = null;
 let usuarioActual = null;
 let rolActual = null;
+let passwordSetupRequired = ["invite", "recovery"].includes(
+  new URLSearchParams(window.location.hash.slice(1)).get("type")
+);
 
 document.addEventListener("DOMContentLoaded", inicializar);
 
 async function inicializar() {
   configurarEventos();
   renderizarTarjetas(localesDemo);
+
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  if (hashParams.get("error_code") === "otp_expired") {
+    appStatus.textContent = "El enlace de invitación venció o ya fue usado. Pedí que reenvíen la invitación y abrí el enlace nuevo.";
+  }
 
   const config = window.SUPABASE_CONFIG;
   if (!config?.url || !config?.anonKey) {
@@ -195,6 +204,33 @@ function configurarEventos() {
   placeForm.addEventListener("submit", guardarSitio);
   cancelEditButton.addEventListener("click", limpiarFormulario);
 
+  passwordSetupForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    adminMessage.textContent = "";
+    const formData = new FormData(passwordSetupForm);
+    const password = formData.get("password");
+
+    if (password !== formData.get("passwordConfirmation")) {
+      adminMessage.textContent = "Las contraseñas no coinciden.";
+      return;
+    }
+
+    try {
+      const { error } = await supabaseClient.auth.updateUser({ password });
+      if (error) {
+        throw error;
+      }
+
+      passwordSetupRequired = false;
+      passwordSetupForm.reset();
+      passwordSetupForm.classList.add("hidden");
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+      adminMessage.textContent = "Contraseña guardada. Ya podés usarla para ingresar.";
+    } catch (error) {
+      adminMessage.textContent = `No se pudo guardar la contraseña: ${error.message}`;
+    }
+  });
+
   managedSites.addEventListener("click", (event) => {
     const button = event.target.closest("[data-action]");
     if (!button) {
@@ -220,6 +256,7 @@ async function actualizarSesion(session) {
   adminMessage.textContent = "";
   loginForm.classList.toggle("hidden", Boolean(usuarioActual));
   adminSession.classList.toggle("hidden", !usuarioActual);
+  passwordSetupForm.classList.toggle("hidden", !usuarioActual || !passwordSetupRequired);
 
   if (!usuarioActual || !supabaseClient) {
     return;
