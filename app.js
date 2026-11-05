@@ -121,6 +121,7 @@ const adminPanel = document.getElementById("adminPanel");
 const closeAdminPanel = document.getElementById("closeAdminPanel");
 const adminMessage = document.getElementById("adminMessage");
 const loginForm = document.getElementById("loginForm");
+const loginSubmitButton = loginForm.querySelector('button[type="submit"]');
 const adminSession = document.getElementById("adminSession");
 const sessionIdentity = document.getElementById("sessionIdentity");
 const logoutButton = document.getElementById("logoutButton");
@@ -164,21 +165,21 @@ async function inicializar() {
   actualizarOpcionesFiltros(localesDemo);
 
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
-  if (hashParams.get("error_code") === "otp_expired") {
-    appStatus.textContent = "El enlace de invitación venció o ya fue usado. Pedí que reenvíen la invitación y abrí el enlace nuevo.";
-  }
+  const inviteLinkExpired = hashParams.get("error_code") === "otp_expired";
+  loginSubmitButton.disabled = true;
+  appStatus.textContent = "Conectando con el panel de gestión...";
 
   const config = window.SUPABASE_CONFIG;
   if (!config?.url || !config?.anonKey) {
     appStatus.textContent = "Directorio de muestra. Configurá Supabase para habilitar datos compartidos y administración.";
     adminMessage.textContent = "El panel requiere configurar Supabase. Consultá SUPABASE_SETUP.md.";
-    loginForm.querySelector('button[type="submit"]').disabled = true;
     return;
   }
 
   try {
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
     supabaseClient = createClient(config.url, config.anonKey);
+    loginSubmitButton.disabled = false;
 
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       window.setTimeout(() => {
@@ -193,8 +194,15 @@ async function inicializar() {
 
     await actualizarSesion(data.session);
     await cargarSitios();
+    if (inviteLinkExpired && !usuarioActual) {
+      adminMessage.textContent = "El enlace de invitación venció o ya fue usado. Podés ingresar con tu contraseña o pedir que reenvíen la invitación.";
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    }
   } catch (error) {
     appStatus.textContent = `No se pudo iniciar la conexión con Supabase: ${error.message}`;
+    if (!supabaseClient) {
+      adminMessage.textContent = "No se pudo preparar el inicio de sesión. Revisá tu conexión e intentá recargar la página.";
+    }
   }
 }
 
@@ -259,6 +267,10 @@ function configurarEventos() {
   loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     adminMessage.textContent = "";
+    if (!supabaseClient) {
+      adminMessage.textContent = "El panel todavía no está conectado con Supabase. Recargá la página e intentá de nuevo.";
+      return;
+    }
     const formData = new FormData(loginForm);
 
     try {
