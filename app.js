@@ -61,6 +61,8 @@ const localesDemo = [
 const placesGrid = document.getElementById("placesGrid");
 const searchInput = document.getElementById("searchInput");
 const categoryButtons = document.getElementById("categoryButtons");
+const departmentFilter = document.getElementById("departmentFilter");
+const tagFilter = document.getElementById("tagFilter");
 const noResults = document.getElementById("noResults");
 const appStatus = document.getElementById("appStatus");
 const adminToggle = document.getElementById("adminToggle");
@@ -95,6 +97,7 @@ document.addEventListener("DOMContentLoaded", inicializar);
 async function inicializar() {
   configurarEventos();
   renderizarTarjetas(localesDemo);
+  actualizarOpcionesFiltros(localesDemo);
 
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
   if (hashParams.get("error_code") === "otp_expired") {
@@ -149,6 +152,9 @@ function configurarEventos() {
     categoriaActual = button.dataset.category;
     aplicarFiltros();
   });
+
+  departmentFilter.addEventListener("change", aplicarFiltros);
+  tagFilter.addEventListener("change", aplicarFiltros);
 
   placesGrid.addEventListener("click", (event) => {
     const link = event.target.closest(".btn-link");
@@ -342,6 +348,7 @@ async function cargarSitios() {
     ...place,
     tags: Array.isArray(place.tags) ? place.tags : []
   }));
+  actualizarOpcionesFiltros(locales);
   appStatus.textContent = "";
   aplicarFiltros();
   return true;
@@ -427,18 +434,54 @@ function validarUrl(value) {
 }
 
 function aplicarFiltros() {
+  const departamentoSeleccionado = departmentFilter.value;
+  const etiquetaSeleccionada = tagFilter.value;
   const resultados = locales.filter((local) => {
     const coincideCategoria = categoriaActual === "todos" || local.category === categoriaActual;
+    const coincideDepartamento = !departamentoSeleccionado || local.department === departamentoSeleccionado;
+    const coincideEtiqueta = !etiquetaSeleccionada || local.tags.some(
+      (tag) => tag.toLocaleLowerCase("es-AR") === etiquetaSeleccionada
+    );
     const textoBuscado = [
       local.name,
       local.department,
       local.description,
       ...local.tags
     ].join(" ").toLowerCase();
-    return coincideCategoria && textoBuscado.includes(busquedaActual);
+    return coincideCategoria
+      && coincideDepartamento
+      && coincideEtiqueta
+      && textoBuscado.includes(busquedaActual);
   });
 
   renderizarTarjetas(resultados);
+}
+
+function actualizarOpcionesFiltros(sites) {
+  const departamentoActual = departmentFilter.value;
+  const etiquetaActual = tagFilter.value;
+  const departamentos = [...new Set(sites.map((site) => site.department).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, "es-AR"));
+  const etiquetas = [...new Set(sites.flatMap((site) => site.tags)
+    .map((tag) => tag.trim())
+    .filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, "es-AR"));
+
+  departmentFilter.replaceChildren(new Option("Todos los departamentos y zonas", ""));
+  departamentos.forEach((department) => {
+    departmentFilter.add(new Option(department, department));
+  });
+  if (departamentos.includes(departamentoActual)) {
+    departmentFilter.value = departamentoActual;
+  }
+
+  tagFilter.replaceChildren(new Option("Todas las etiquetas", ""));
+  etiquetas.forEach((tag) => {
+    tagFilter.add(new Option(tag, tag.toLocaleLowerCase("es-AR")));
+  });
+  if (etiquetas.some((tag) => tag.toLocaleLowerCase("es-AR") === etiquetaActual)) {
+    tagFilter.value = etiquetaActual;
+  }
 }
 
 async function registrarClic(placeId, linkType) {

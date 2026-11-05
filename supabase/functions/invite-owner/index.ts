@@ -28,13 +28,26 @@ Deno.serve(async (request: Request) => {
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!supabaseUrl || !serviceRoleKey) {
-    console.error("Faltan SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en el entorno de la función.");
+  const secretKeysValue = Deno.env.get("SUPABASE_SECRET_KEYS");
+  if (!supabaseUrl || !secretKeysValue) {
+    console.error("Faltan SUPABASE_URL o SUPABASE_SECRET_KEYS en el entorno de la función.");
     return respond({ error: "La función no está configurada correctamente." }, 500);
   }
 
-  const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+  let secretKeys: Record<string, string>;
+  try {
+    secretKeys = JSON.parse(secretKeysValue);
+  } catch {
+    console.error("SUPABASE_SECRET_KEYS no contiene un objeto JSON válido.");
+    return respond({ error: "La función no está configurada correctamente." }, 500);
+  }
+  const secretKey = secretKeys.default;
+  if (!secretKey) {
+    console.error("No se encontró la clave secreta predeterminada de Supabase.");
+    return respond({ error: "La función no está configurada correctamente." }, 500);
+  }
+
+  const adminClient = createClient(supabaseUrl, secretKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   });
 

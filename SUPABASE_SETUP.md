@@ -25,23 +25,20 @@ La app sigue siendo HTML, CSS y JavaScript separados. Supabase guarda los sitios
 
 Después de la configuración inicial, las cuentas de los socios se pueden invitar desde **Panel de gestión → Invitar a un socio**. Solo una cuenta con rol `admin` puede hacerlo. La invitación crea una cuenta con rol `owner`, que luego aparece en la lista de asignación de fichas cuando acepte el correo.
 
-La invitación la envía una Supabase Edge Function; la clave `service_role` queda guardada como secreto en Supabase y nunca se publica en el sitio.
+La invitación la envía una Supabase Edge Function. Supabase le proporciona automáticamente `SUPABASE_SECRET_KEYS`; la clave secreta se usa solo dentro de la función y nunca se publica en el sitio.
 
 1. Instalá o usá la Supabase CLI y vinculá este proyecto:
 
    ```sh
-   npx supabase login
-   npx supabase link --project-ref eqzovcctuhdjhfxsiqza
+   npx.cmd supabase login
+   npx.cmd supabase link --project-ref eqzovcctuhdjhfxsiqza
    ```
 
-2. En Supabase → Project Settings → API, copiá la clave `service_role` (o `service_role` secret key). En Supabase → Edge Functions → Secrets, guardala con el nombre `SUPABASE_SERVICE_ROLE_KEY`. No la pongas en `supabase-config.js`, en ningún archivo del sitio ni en un repositorio:
-
-   También se puede cargar con la CLI usando `npx supabase secrets set`, pero el panel evita dejar la clave en el historial de comandos.
-
+2. No agregues manualmente una clave cuyo nombre empiece por `SUPABASE_` en Edge Function Secrets: ese prefijo está reservado. La función usa la clave secreta que Supabase inyecta automáticamente en el entorno como `SUPABASE_SECRET_KEYS`.
 3. Desde la raíz del proyecto, desplegá la función:
 
    ```sh
-   npx supabase functions deploy invite-owner
+   npx.cmd supabase functions deploy invite-owner
    ```
 
 4. Confirmá que la URL de tu sitio esté agregada en Supabase → Authentication → URL Configuration → Redirect URLs. La función usa el Site URL de Supabase para el enlace de invitación.
@@ -49,6 +46,8 @@ La invitación la envía una Supabase Edge Function; la clave `service_role` que
 Render y Vercel necesitan acceder al proyecto desde un repositorio GitHub. Como este workspace aún no está conectado a un repositorio, primero subí los archivos del proyecto a uno y después importá ese repositorio en cada plataforma.
 
 Los sitios existentes en el prototipo permanecen como datos de muestra mientras Supabase no esté configurado. La base conectada comienza vacía; cargá las fichas desde el panel admin.
+
+En el directorio público se puede combinar la búsqueda con filtros de categoría, departamento/zona y etiquetas. Los filtros de ubicación y etiquetas se generan automáticamente a partir de las fichas cargadas.
 
 ## Qué mide
 

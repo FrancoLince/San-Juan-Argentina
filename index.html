@@ -132,13 +132,28 @@
     <!-- Módulo de Búsqueda y Filtros -->
     <section class="controls-section">
       <input type="text" id="searchInput" placeholder="Buscar por nombre, zona o etiqueta (ej. lomería, Rivadavia)...">
-      
+
       <div class="category-buttons" id="categoryButtons">
         <button class="btn-filter active" data-category="todos">Todos</button>
         <button class="btn-filter" data-category="gastronomia">Gastronomía</button>
         <button class="btn-filter" data-category="indumentaria">Indumentaria</button>
         <button class="btn-filter" data-category="nocturnidad">Nocturnidad</button>
         <button class="btn-filter" data-category="deportes">Deportes</button>
+      </div>
+
+      <div class="additional-filters">
+        <label>
+          Departamento o zona
+          <select id="departmentFilter">
+            <option value="">Todos los departamentos y zonas</option>
+          </select>
+        </label>
+        <label>
+          Tipo de lugar o servicio
+          <select id="tagFilter">
+            <option value="">Todas las etiquetas</option>
+          </select>
+        </label>
       </div>
     </section>
 
