@@ -5,6 +5,13 @@ const categorias = {
   deportes: "Deportes"
 };
 
+const iconosCategoria = {
+  gastronomia: "🍽",
+  indumentaria: "✦",
+  nocturnidad: "♫",
+  deportes: "⚽"
+};
+
 const localesDemo = [
   {
     id: "demo-1",
@@ -77,6 +84,9 @@ const passwordSetupForm = document.getElementById("passwordSetupForm");
 const ownerInviteForm = document.getElementById("ownerInviteForm");
 const adminEditor = document.getElementById("adminEditor");
 const placeForm = document.getElementById("placeForm");
+const placeImageEditor = document.getElementById("placeImageEditor");
+const placeImagePreview = document.getElementById("placeImagePreview");
+const removePlaceImageLabel = document.getElementById("removePlaceImageLabel");
 const managedSites = document.getElementById("managedSites");
 const managedSitesTitle = document.getElementById("managedSitesTitle");
 const ownerSelectLabel = document.getElementById("ownerSelectLabel");
@@ -88,6 +98,15 @@ let busquedaActual = "";
 let supabaseClient = null;
 let usuarioActual = null;
 let rolActual = null;
+let currentPlaceImageUrl = "";
+let previewObjectUrl = "";
+const imageMimeExtensions = new Map([
+  ["image/jpeg", "jpg"],
+  ["image/png", "png"],
+  ["image/webp", "webp"],
+  ["image/avif", "avif"]
+]);
+const maxPlaceImageSize = 5 * 1024 * 1024;
 let passwordSetupRequired = ["invite", "recovery"].includes(
   new URLSearchParams(window.location.hash.slice(1)).get("type")
 );
@@ -209,6 +228,10 @@ function configurarEventos() {
   });
 
   placeForm.addEventListener("submit", guardarSitio);
+  placeForm.elements.image.addEventListener("change", actualizarVistaPreviaImagen);
+  placeForm.elements.remove_image.addEventListener("change", () => {
+    placeImageEditor.classList.toggle("image-marked-for-removal", placeForm.elements.remove_image.checked);
+  });
   cancelEditButton.addEventListener("click", limpiarFormulario);
 
   ownerInviteForm.addEventListener("submit", async (event) => {
@@ -336,7 +359,7 @@ async function actualizarSesion(session) {
 async function cargarSitios() {
   const { data, error } = await supabaseClient
     .from("places")
-    .select("id, name, category, department, description, instagram_url, website_url, tags, owner_id")
+    .select("id, name, category, department, description, instagram_url, website_url, image_url, tags, owner_id")
     .order("name");
 
   if (error) {
@@ -361,6 +384,30 @@ function renderizarTarjetas(lista) {
   lista.forEach((local) => {
     const card = document.createElement("article");
     card.className = "card";
+
+    const image = document.createElement("div");
+    image.className = "card-image";
+    if (validarUrl(local.image_url)) {
+      const photo = document.createElement("img");
+      photo.src = local.image_url;
+      photo.alt = `Foto de ${local.name}`;
+      photo.loading = "lazy";
+      photo.decoding = "async";
+      photo.addEventListener("error", () => {
+        image.classList.add("card-image-placeholder");
+        photo.remove();
+        const icon = document.createElement("span");
+        icon.textContent = iconosCategoria[local.category] ?? "✦";
+        image.append(icon);
+      }, { once: true });
+      image.append(photo);
+    } else {
+      image.classList.add("card-image-placeholder");
+      image.setAttribute("aria-hidden", "true");
+      const icon = document.createElement("span");
+      icon.textContent = iconosCategoria[local.category] ?? "✦";
+      image.append(icon);
+    }
 
     const content = document.createElement("div");
     const heading = document.createElement("div");
@@ -398,7 +445,7 @@ function renderizarTarjetas(lista) {
     links.className = "card-links";
     agregarEnlace(links, local, "instagram_url", "Instagram", "instagram");
     agregarEnlace(links, local, "website_url", "Web / Menú", "web");
-    card.append(content, links);
+    card.append(image, content, links);
     placesGrid.append(card);
   });
 }
@@ -455,6 +502,45 @@ function aplicarFiltros() {
   });
 
   renderizarTarjetas(resultados);
+}
+
+function actualizarVistaPreviaImagen() {
+  const file = placeForm.elements.image.files[0];
+  if (previewObjectUrl) {
+    URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = "";
+  }
+
+  if (file) {
+    placeForm.elements.remove_image.checked = false;
+    previewObjectUrl = URL.createObjectURL(file);
+    mostrarVistaPreviaImagen(previewObjectUrl);
+  } else if (currentPlaceImageUrl && !placeForm.elements.remove_image.checked) {
+    mostrarVistaPreviaImagen(currentPlaceImageUrl);
+  } else {
+    placeImageEditor.classList.add("hidden");
+  }
+}
+
+function mostrarVistaPreviaImagen(url) {
+  placeImagePreview.src = url;
+  placeImageEditor.classList.remove("hidden");
+  placeImageEditor.classList.toggle("image-marked-for-removal", placeForm.elements.remove_image.checked);
+}
+
+function obtenerRutaImagen(imageUrl) {
+  if (!imageUrl) {
+    return "";
+  }
+
+  try {
+    const url = new URL(imageUrl);
+    const bucketPath = "/storage/v1/object/public/place-images/";
+    const pathStart = url.pathname.indexOf(bucketPath);
+    return pathStart < 0 ? "" : decodeURIComponent(url.pathname.slice(pathStart + bucketPath.length));
+  } catch {
+    return "";
+  }
 }
 
 function actualizarOpcionesFiltros(sites) {
@@ -520,7 +606,7 @@ async function cargarPanelSitios() {
   adminMessage.textContent = "";
   let query = supabaseClient
     .from("places")
-    .select("id, name, category, department, instagram_url, website_url, owner_id")
+    .select("id, name, category, department, instagram_url, website_url, image_url, owner_id")
     .order("name");
 
   if (rolActual === "owner") {
@@ -613,44 +699,115 @@ async function guardarSitio(event) {
   const formData = new FormData(placeForm);
   const instagramUrl = formData.get("instagram_url").trim();
   const websiteUrl = formData.get("website_url").trim();
+  const imageFile = placeForm.elements.image.files[0];
 
   if (!instagramUrl && !websiteUrl) {
     adminMessage.textContent = "Agregá al menos un enlace de Instagram o del sitio web.";
     return;
   }
 
+  if (imageFile && (!imageMimeExtensions.has(imageFile.type) || imageFile.size > maxPlaceImageSize)) {
+    adminMessage.textContent = "La foto debe ser JPG, PNG, WebP o AVIF y pesar como máximo 5 MB.";
+    return;
+  }
+
+  const existingPlaceId = formData.get("id");
+  const placeId = existingPlaceId || crypto.randomUUID();
+  const previousImageUrl = currentPlaceImageUrl;
+  const removeImage = placeForm.elements.remove_image.checked;
   const payload = {
+    id: placeId,
     name: formData.get("name").trim(),
     category: formData.get("category"),
     department: formData.get("department").trim(),
     description: formData.get("description").trim(),
     instagram_url: instagramUrl || null,
     website_url: websiteUrl || null,
+    image_url: removeImage ? null : previousImageUrl || null,
     tags: formData.get("tags").split(",").map((tag) => tag.trim()).filter(Boolean),
     owner_id: formData.get("owner_id") || null
   };
-  const placeId = formData.get("id");
+  let uploadedImagePath = "";
+  let databaseSaved = false;
+  const submitButton = placeForm.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
 
   try {
-    const request = placeId
+    if (imageFile) {
+      const extension = imageMimeExtensions.get(imageFile.type);
+      uploadedImagePath = `${placeId}/${crypto.randomUUID()}.${extension}`;
+      const { error: uploadError } = await supabaseClient.storage
+        .from("place-images")
+        .upload(uploadedImagePath, imageFile, {
+          contentType: imageFile.type,
+          cacheControl: "31536000",
+          upsert: false
+        });
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: publicUrl } = supabaseClient.storage
+        .from("place-images")
+        .getPublicUrl(uploadedImagePath);
+      payload.image_url = publicUrl.publicUrl;
+    }
+
+    const request = existingPlaceId
       ? supabaseClient.from("places").update(payload).eq("id", placeId)
       : supabaseClient.from("places").insert(payload);
     const { error } = await request;
     if (error) {
       throw error;
     }
+    databaseSaved = true;
 
     limpiarFormulario();
     const [sitesLoaded, panelLoaded] = await Promise.all([cargarSitios(), cargarPanelSitios()]);
     if (sitesLoaded && panelLoaded) {
-      adminMessage.textContent = placeId ? "Sitio actualizado." : "Sitio agregado.";
+      adminMessage.textContent = existingPlaceId ? "Sitio actualizado." : "Sitio agregado.";
+    }
+    if ((removeImage || imageFile) && previousImageUrl) {
+      const oldImagePath = obtenerRutaImagen(previousImageUrl);
+      if (oldImagePath && oldImagePath !== uploadedImagePath) {
+        try {
+          const { error: removeError } = await supabaseClient.storage
+            .from("place-images")
+            .remove([oldImagePath]);
+          if (removeError) {
+            adminMessage.textContent = `La ficha se guardó, pero no se pudo borrar la foto anterior: ${removeError.message}`;
+          }
+        } catch (error) {
+          adminMessage.textContent = `La ficha se guardó, pero no se pudo borrar la foto anterior: ${error.message}`;
+        }
+      }
     }
   } catch (error) {
-    adminMessage.textContent = `No se pudo guardar el sitio: ${error.message}`;
+    if (uploadedImagePath && !databaseSaved) {
+      try {
+        const { error: cleanupError } = await supabaseClient.storage
+          .from("place-images")
+          .remove([uploadedImagePath]);
+        if (cleanupError) {
+          console.error("No se pudo limpiar la foto tras un error al guardar:", cleanupError.message);
+        }
+      } catch (cleanupError) {
+        console.error("No se pudo limpiar la foto tras un error al guardar:", cleanupError);
+      }
+    }
+    adminMessage.textContent = databaseSaved
+      ? `El sitio se guardó, pero hubo un error al actualizar la página: ${error.message}`
+      : `No se pudo guardar el sitio: ${error.message}`;
+  } finally {
+    submitButton.disabled = false;
   }
 }
 
 function iniciarEdicion(place) {
+  if (previewObjectUrl) {
+    URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = "";
+  }
   placeForm.elements.id.value = place.id;
   placeForm.elements.name.value = place.name;
   placeForm.elements.category.value = place.category;
@@ -660,6 +817,15 @@ function iniciarEdicion(place) {
   placeForm.elements.website_url.value = place.website_url ?? "";
   placeForm.elements.tags.value = place.tags.join(", ");
   placeForm.elements.owner_id.value = place.owner_id ?? "";
+  currentPlaceImageUrl = place.image_url ?? "";
+  placeForm.elements.image.value = "";
+  placeForm.elements.remove_image.checked = false;
+  removePlaceImageLabel.classList.toggle("hidden", !currentPlaceImageUrl);
+  if (currentPlaceImageUrl) {
+    mostrarVistaPreviaImagen(currentPlaceImageUrl);
+  } else {
+    placeImageEditor.classList.add("hidden");
+  }
   document.getElementById("editorTitle").textContent = "Editar sitio";
   placeForm.querySelector('button[type="submit"]').textContent = "Guardar cambios";
   cancelEditButton.classList.remove("hidden");
@@ -667,8 +833,15 @@ function iniciarEdicion(place) {
 }
 
 function limpiarFormulario() {
+  if (previewObjectUrl) {
+    URL.revokeObjectURL(previewObjectUrl);
+    previewObjectUrl = "";
+  }
   placeForm.reset();
   placeForm.elements.id.value = "";
+  currentPlaceImageUrl = "";
+  removePlaceImageLabel.classList.add("hidden");
+  placeImageEditor.classList.add("hidden");
   document.getElementById("editorTitle").textContent = "Agregar un sitio";
   placeForm.querySelector('button[type="submit"]').textContent = "Guardar sitio";
   cancelEditButton.classList.add("hidden");
@@ -686,12 +859,29 @@ async function eliminarSitio(place) {
       throw error;
     }
 
+    let imageCleanupError = "";
+    const imagePath = obtenerRutaImagen(place.image_url);
+    if (imagePath) {
+      try {
+        const { error: storageError } = await supabaseClient.storage
+          .from("place-images")
+          .remove([imagePath]);
+        if (storageError) {
+          imageCleanupError = storageError.message;
+        }
+      } catch (error) {
+        imageCleanupError = error.message;
+      }
+    }
+
     if (placeForm.elements.id.value === place.id) {
       limpiarFormulario();
     }
     const [sitesLoaded, panelLoaded] = await Promise.all([cargarSitios(), cargarPanelSitios()]);
     if (sitesLoaded && panelLoaded) {
-      adminMessage.textContent = "Sitio retirado.";
+      adminMessage.textContent = imageCleanupError
+        ? `Sitio retirado, pero no se pudo borrar su foto: ${imageCleanupError}`
+        : "Sitio retirado.";
     }
   } catch (error) {
     adminMessage.textContent = `No se pudo retirar el sitio: ${error.message}`;

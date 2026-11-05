@@ -98,6 +98,17 @@
               <textarea name="description" rows="3" maxlength="500" required></textarea>
             </label>
             <label>
+              Foto del negocio (JPG, PNG, WebP o AVIF; hasta 5 MB)
+              <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/avif">
+            </label>
+            <div class="place-image-editor hidden" id="placeImageEditor">
+              <img id="placeImagePreview" alt="Vista previa de la foto del negocio">
+              <label class="remove-place-image hidden" id="removePlaceImageLabel">
+                <input type="checkbox" name="remove_image">
+                Quitar la foto actual
+              </label>
+            </div>
+            <label>
               Instagram (opcional)
               <input type="url" name="instagram_url" placeholder="https://instagram.com/..." inputmode="url">
             </label>

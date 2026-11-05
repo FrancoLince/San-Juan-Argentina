@@ -49,6 +49,10 @@ Los sitios existentes en el prototipo permanecen como datos de muestra mientras 
 
 En el directorio público se puede combinar la búsqueda con filtros de categoría, departamento/zona y etiquetas. Los filtros de ubicación y etiquetas se generan automáticamente a partir de las fichas cargadas.
 
+## Fotos en las fichas
+
+Las cuentas admin pueden cargar una foto JPG, PNG, WebP o AVIF de hasta 5 MB al crear o editar una ficha. Las imágenes se guardan en el bucket público `place-images`; solo admins pueden subirlas, reemplazarlas o borrarlas. Para una base existente, ejecutá una vez `supabase-image-setup.sql` desde el SQL Editor de Supabase antes de publicar la nueva interfaz. En una instalación nueva, `supabase-schema.sql` ya crea la columna, el bucket y sus políticas.
+
 ## Qué mide
 
 Se cuenta cada clic que abre Instagram o el sitio web de una ficha (total histórico). No son personas únicas ni visualizaciones de página: una misma persona puede generar varios clics. El sistema no guarda IP ni identidad de visitantes. La función RPC de registro comprueba que la ficha tenga ese enlace y RLS impide que una cuenta consulte los clics de otra.

@@ -191,6 +191,44 @@ body {
   transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
 }
 
+.card-image {
+  display: grid;
+  height: 180px;
+  margin: -1.25rem -1.25rem 1rem;
+  overflow: hidden;
+  place-items: center;
+  background-color: #f5f1eb;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 300ms ease;
+}
+
+.card:hover .card-image img {
+  transform: scale(1.04);
+}
+
+.card-image-placeholder {
+  background:
+    radial-gradient(circle at 75% 25%, rgba(255, 209, 102, 0.75), transparent 28%),
+    linear-gradient(135deg, #dcebe1, #f8e6d4 70%, #f5c5a5);
+}
+
+.card-image-placeholder span {
+  display: grid;
+  width: 4.25rem;
+  height: 4.25rem;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--green-deep);
+  font-size: 2rem;
+}
+
 .card::before {
   position: absolute;
   top: 0;
@@ -211,6 +249,37 @@ body {
 
 .card:hover::before {
   opacity: 1;
+}
+
+.place-image-editor {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.65rem;
+  justify-items: start;
+}
+
+.place-image-editor img {
+  width: min(100%, 360px);
+  max-height: 220px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.place-image-editor .remove-place-image {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent-hover);
+}
+
+.place-image-editor .remove-place-image input {
+  width: auto;
+  min-height: auto;
+  padding: 0;
+}
+
+.place-image-editor.image-marked-for-removal img {
+  opacity: 0.4;
 }
 
 .card-header {
