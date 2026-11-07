@@ -320,6 +320,20 @@ body {
   line-height: 1.25;
 }
 
+.card-demo-badge {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  background-color: #fff0ed;
+  color: #a42e1e;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
 .card-badge {
   flex-shrink: 0;
   padding: 0.28rem 0.6rem;

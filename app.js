@@ -95,51 +95,51 @@ const filtrosActividad = {
 const localesDemo = [
   {
     id: "demo-1",
-    name: "La Salmuera",
+    name: "Ejemplo de bar",
     category: "nocturnidad",
     department: "Rivadavia",
-    description: "Eventos, espacio al aire libre, gastronomía y tragos.",
-    instagram_url: "https://instagram.com",
+    description: "Ficha ilustrativa de un bar con eventos, gastronomía y tragos.",
+    instagram_url: "",
     website_url: "",
     tags: ["fiesta", "tragos", "eventos"]
   },
   {
     id: "demo-2",
-    name: "MSW Streetwear",
+    name: "Ejemplo de indumentaria",
     category: "indumentaria",
     department: "Capital",
-    description: "Ropa urbana, buzos raglan, hoodies y prendas de abrigo.",
-    instagram_url: "https://instagram.com",
-    website_url: "https://ejemplo.com",
+    description: "Ficha ilustrativa de una tienda de ropa urbana y prendas de abrigo.",
+    instagram_url: "",
+    website_url: "",
     tags: ["ropa", "streetwear", "buzos"]
   },
   {
     id: "demo-3",
-    name: "Play Cinema",
+    name: "Ejemplo de cine",
     category: "nocturnidad",
     department: "Rivadavia",
-    description: "Salas de cine, cartelera semanal y promociones.",
-    instagram_url: "https://instagram.com",
-    website_url: "https://ejemplo.com",
+    description: "Ficha ilustrativa de un cine con cartelera y promociones.",
+    instagram_url: "",
+    website_url: "",
     tags: ["cine", "salidas", "entretenimiento"]
   },
   {
     id: "demo-4",
-    name: "Heed Physique",
+    name: "Ejemplo de gimnasio",
     category: "deportes",
     department: "Capital",
-    description: "Gimnasio equipamiento completo, musculación y cardio.",
-    instagram_url: "https://instagram.com",
+    description: "Ficha ilustrativa de un gimnasio con musculación y cardio.",
+    instagram_url: "",
     website_url: "",
     tags: ["gimnasio", "fitness", "entrenamiento"]
   },
   {
     id: "demo-5",
-    name: "Lomería El Paseo",
+    name: "Ejemplo de lomos",
     category: "gastronomia",
     department: "Santa Lucía",
-    description: "Lomos completos, hamburguesas artesanales y papas.",
-    instagram_url: "https://instagram.com",
+    description: "Ficha ilustrativa de un local de lomos, hamburguesas y papas.",
+    instagram_url: "",
     website_url: "",
     tags: ["lomos", "comida rápida", "restaurante"]
   }
@@ -204,7 +204,7 @@ document.addEventListener("DOMContentLoaded", inicializar);
 async function inicializar() {
   configurarEventos();
   configurarCategorias();
-  renderizarTarjetas(localesDemo);
+  renderizarTarjetas(localesDemo.map((local) => ({ ...local, is_demo: true })));
   actualizarOpcionesFiltros(localesDemo);
 
   const hashParams = new URLSearchParams(window.location.hash.slice(1));
@@ -214,7 +214,7 @@ async function inicializar() {
 
   const config = window.SUPABASE_CONFIG;
   if (!config?.url || !config?.anonKey) {
-    appStatus.textContent = "Directorio de muestra. Configurá Supabase para habilitar datos compartidos y administración.";
+    appStatus.textContent = "Fichas de ejemplo: no representan negocios reales. Configurá Supabase para habilitar datos compartidos y administración.";
     adminMessage.textContent = "No se encontró la configuración de Supabase en esta publicación. Verificá que supabase-config.js esté en la raíz del sitio.";
     return;
   }
@@ -512,12 +512,18 @@ async function cargarSitios() {
     return false;
   }
 
-  locales = data.map((place) => ({
-    ...place,
-    tags: Array.isArray(place.tags) ? place.tags : []
-  }));
+  const showingExamples = data.length === 0;
+  locales = showingExamples
+    ? localesDemo.map((place) => ({ ...place, is_demo: true }))
+    : data.map((place) => ({
+      ...place,
+      is_demo: false,
+      tags: Array.isArray(place.tags) ? place.tags : []
+    }));
   actualizarOpcionesFiltros(locales);
-  appStatus.textContent = "";
+  appStatus.textContent = showingExamples
+    ? "Todavía no hay fichas cargadas. Estos ejemplos son ilustrativos, no son negocios reales ni se guardan en Supabase."
+    : "";
   aplicarFiltros();
   return true;
 }
@@ -561,6 +567,12 @@ function renderizarTarjetas(lista) {
     const title = document.createElement("h2");
     title.className = "card-title";
     title.textContent = local.name;
+    if (local.is_demo) {
+      const demoBadge = document.createElement("span");
+      demoBadge.className = "card-demo-badge";
+      demoBadge.textContent = "Ejemplo";
+      title.append(demoBadge);
+    }
 
     const badge = document.createElement("span");
     badge.className = "card-badge";

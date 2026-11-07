@@ -47,7 +47,7 @@ La invitación la envía una Supabase Edge Function. Supabase le proporciona aut
 
 Render y Vercel necesitan acceder al proyecto desde un repositorio GitHub. Como este workspace aún no está conectado a un repositorio, primero subí los archivos del proyecto a uno y después importá ese repositorio en cada plataforma.
 
-Los sitios existentes en el prototipo permanecen como datos de muestra mientras Supabase no esté configurado. La base conectada comienza vacía; cargá las fichas desde el panel admin.
+Si Supabase no está configurado o todavía no tiene fichas, el directorio muestra cinco fichas ilustrativas, claramente marcadas como ejemplos. No representan negocios reales, no tienen enlaces y no se guardan en la base. Al cargar fichas reales, los ejemplos dejan de mostrarse.
 
 En el directorio público se puede combinar la búsqueda con filtros de rubro, departamento/zona y etiquetas. Los filtros de ubicación y etiquetas se generan automáticamente a partir de las fichas cargadas. El formulario incluye rubros comunes de comercio, servicios, producción y emprendimientos; también permite escribir cualquier rubro nuevo, que luego aparece automáticamente en el filtro.
 
