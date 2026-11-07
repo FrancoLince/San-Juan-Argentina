@@ -21,6 +21,8 @@ La app sigue siendo HTML, CSS y JavaScript separados. Supabase guarda los sitios
 6. En Supabase → Authentication → URL Configuration, configurá `https://san-juan-argentina.onrender.com` como **Site URL** si Render será el dominio principal. En **Redirect URLs**, agregá `https://san-juan-argentina.onrender.com/**`. Si después publicás en Vercel, agregá también `https://TU-PROYECTO.vercel.app/**`; para desarrollo local, `http://localhost:8000/**`.
 7. Invitá o reenviá las invitaciones después de guardar esas URLs. Un enlace anterior que expiró no se recupera: hay que generar uno nuevo. Abrí el enlace nuevo desde el dominio configurado; el panel permitirá definir la contraseña. La cuenta admin puede crear, editar y retirar sitios, y asignar cada ficha a un dueño. Los dueños ven únicamente las métricas de las fichas asignadas.
 
+Si la base ya existía antes de esta versión, ejecutá una vez `supabase-hide-place-setup.sql` desde el SQL Editor antes de publicar los cambios. En una instalación nueva, `supabase-schema.sql` ya incluye la configuración. Desde el panel admin se puede ocultar o volver a mostrar una ficha sin borrar sus datos ni estadísticas; las fichas ocultas dejan de estar disponibles en el directorio público.
+
 ## Invitar socios desde la web
 
 Después de la configuración inicial, las cuentas de los socios se pueden invitar desde **Panel de gestión → Invitar a un socio**. Solo una cuenta con rol `admin` puede hacerlo. La invitación crea una cuenta con rol `owner`, que luego aparece en la lista de asignación de fichas cuando acepte el correo.

@@ -187,6 +187,7 @@ let usuarioActual = null;
 let rolActual = null;
 let currentPlaceImageUrl = "";
 let previewObjectUrl = "";
+let sitiosGestionados = new Map();
 const imageMimeExtensions = new Map([
   ["image/jpeg", "jpg"],
   ["image/png", "png"],
@@ -442,7 +443,8 @@ function configurarEventos() {
       return;
     }
 
-    const place = locales.find((local) => local.id === button.dataset.id);
+    const place = sitiosGestionados.get(button.dataset.id)
+      ?? locales.find((local) => local.id === button.dataset.id);
     if (!place) {
       return;
     }
@@ -451,6 +453,8 @@ function configurarEventos() {
       iniciarEdicion(place);
     } else if (button.dataset.action === "delete") {
       void eliminarSitio(place);
+    } else if (button.dataset.action === "hide" || button.dataset.action === "show") {
+      void cambiarVisibilidadSitio(place);
     }
   });
 }
@@ -778,7 +782,7 @@ async function cargarPanelSitios() {
   adminMessage.textContent = "";
   let query = supabaseClient
     .from("places")
-    .select("id, name, category, department, instagram_url, website_url, image_url, owner_id")
+    .select("id, name, category, department, instagram_url, website_url, image_url, owner_id, is_hidden")
     .order("name");
 
   if (rolActual === "owner") {
@@ -797,6 +801,7 @@ async function cargarPanelSitios() {
   }
 
   const statsByPlace = new Map(stats.map((item) => [item.place_id, item]));
+  sitiosGestionados = new Map(places.map((place) => [place.id, place]));
   managedSites.replaceChildren();
 
   if (places.length === 0) {
@@ -822,19 +827,34 @@ async function cargarPanelSitios() {
     category.textContent = categoriaPorValor.get(place.category)?.label ?? place.category;
     heading.append(title, category);
 
+    if (place.is_hidden) {
+      const hiddenStatus = document.createElement("p");
+      hiddenStatus.className = "managed-site-status";
+      hiddenStatus.textContent = "Ficha oculta · no aparece en el directorio público";
+      item.append(heading, hiddenStatus);
+    } else {
+      item.append(heading);
+    }
+
     const metrics = document.createElement("dl");
     metrics.className = "click-metrics";
     metrics.append(
       crearMetrica("Web / menú", counts.website_clicks),
       crearMetrica("Instagram", counts.instagram_clicks)
     );
-    item.append(heading, metrics);
+    item.append(metrics);
 
     if (rolActual === "admin") {
       const actions = document.createElement("div");
       actions.className = "managed-site-actions";
       actions.append(
         crearAccion("Editar", "edit", place.id, "admin-secondary-button"),
+        crearAccion(
+          place.is_hidden ? "Mostrar ficha" : "Ocultar ficha",
+          place.is_hidden ? "show" : "hide",
+          place.id,
+          "admin-secondary-button"
+        ),
         crearAccion("Retirar", "delete", place.id, "admin-danger-button")
       );
       item.append(actions);
@@ -1074,5 +1094,37 @@ async function eliminarSitio(place) {
     }
   } catch (error) {
     adminMessage.textContent = `No se pudo retirar el sitio: ${error.message}`;
+  }
+}
+
+async function cambiarVisibilidadSitio(place) {
+  const isHidden = !place.is_hidden;
+  const confirmation = isHidden
+    ? `¿Ocultar "${place.name}"? Dejará de aparecer en el directorio, pero conservará su ficha y estadísticas.`
+    : `¿Volver a mostrar "${place.name}" en el directorio?`;
+  if (!window.confirm(confirmation)) {
+    return;
+  }
+
+  adminMessage.textContent = "";
+  try {
+    const { error } = await supabaseClient
+      .from("places")
+      .update({ is_hidden: isHidden })
+      .eq("id", place.id)
+      .select("id")
+      .single();
+    if (error) {
+      throw error;
+    }
+
+    const [sitesLoaded, panelLoaded] = await Promise.all([cargarSitios(), cargarPanelSitios()]);
+    if (sitesLoaded && panelLoaded) {
+      adminMessage.textContent = isHidden
+        ? "Ficha oculta. Se conservaron sus datos y estadísticas."
+        : "Ficha publicada nuevamente.";
+    }
+  } catch (error) {
+    adminMessage.textContent = `No se pudo ${isHidden ? "ocultar" : "mostrar"} la ficha: ${error.message}`;
   }
 }

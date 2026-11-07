@@ -685,6 +685,12 @@ body {
   text-align: right;
 }
 
+.managed-site-status {
+  color: var(--accent-hover);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .click-metrics {
   display: grid;
   grid-template-columns: 1fr 1fr;

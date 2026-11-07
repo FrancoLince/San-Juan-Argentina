@@ -16,6 +16,7 @@ create table if not exists public.places (
   website_url text,
   tags text[] not null default '{}',
   owner_id uuid references public.profiles (id) on delete set null,
+  is_hidden boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (image_url is null or image_url ~* '^https?://'),
@@ -125,7 +126,8 @@ begin
   end
   into target_url
   from public.places
-  where id = p_place_id;
+  where id = p_place_id
+    and not is_hidden;
 
   if target_url is null then
     raise exception 'El sitio o enlace solicitado no existe';
@@ -177,9 +179,20 @@ create policy "Admins can update profiles"
   with check ((select public.is_admin()));
 
 drop policy if exists "Places are public" on public.places;
-create policy "Places are public"
+drop policy if exists "Public places are visible" on public.places;
+create policy "Public places are visible"
   on public.places for select to anon, authenticated
-  using (true);
+  using (not is_hidden);
+
+drop policy if exists "Admins can read all places" on public.places;
+create policy "Admins can read all places"
+  on public.places for select to authenticated
+  using ((select public.is_admin()));
+
+drop policy if exists "Owners can read their places" on public.places;
+create policy "Owners can read their places"
+  on public.places for select to authenticated
+  using (owner_id = (select auth.uid()));
 
 drop policy if exists "Admins can insert places" on public.places;
 create policy "Admins can insert places"
